@@ -33,6 +33,7 @@ var recipes []Recipe
 
 // swagger:parameters recipes newRecipe
 type Recipe struct {
+	//swagger:ignore
 	ID           string    `json:"id"`
 	Name         string    `json:"name"`
 	Tags         []string  `json:"tags"`
@@ -184,6 +185,36 @@ func SearchRecipesHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, result)
 }
 
+// swagger:operation GET /recipes/{id} recipes getRecipe
+// Get a recipe by ID
+// ---
+// produces:
+// - application/json
+// parameters:
+//   - name: id
+//     in: path
+//     description: ID of the recipe
+//     required: true
+//     type: string
+//
+// responses:
+//
+//		'200':
+//	    	description: Successful operation
+//		'404':
+//	    	description: Invalid recipe ID
+func GetRecipeHandler(c *gin.Context) {
+	id := c.Param("id")
+	for _, r := range recipes {
+		if r.ID == id {
+			c.JSON(http.StatusOK, r)
+			return
+		}
+	}
+
+	c.JSON(http.StatusNotFound, gin.H{"error": "recipe not found"})
+}
+
 func init() {
 	recipes = make([]Recipe, 0)
 	//read file recipes.json
@@ -205,5 +236,6 @@ func main() {
 	r.PUT("/recipes:id", UpdateRecipeHandler)
 	r.DELETE("/recipes:id", DeleteRecipeHandler)
 	r.GET("/recipes/search", SearchRecipesHandler)
+	r.GET(("recipes/:id"), GetRecipeHandler)
 	r.Run() // listen and serve on 8080
 }
