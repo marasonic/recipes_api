@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -75,6 +76,27 @@ func DeleteRecipeHandler(c *gin.Context) {
 	c.JSON(http.StatusNotFound, gin.H{"error": "recipe not found"})
 }
 
+// SearchRecipesHandler searches recipes by tag
+func SearchRecipesHandler(c *gin.Context) {
+	tag := c.Query("tag")
+	if tag == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "missing tag query parameter"})
+		return
+	}
+
+	result := make([]Recipe, 0)
+	for _, r := range recipes {
+		for _, t := range r.Tags {
+			if strings.EqualFold(t, tag)  {
+				result = append(result, r)
+				break
+			}
+		}
+	}
+
+	c.JSON(http.StatusOK, result)
+}
+
 func init() {
 	recipes = make([]Recipe, 0)
 	//read file recipes.json
@@ -95,5 +117,6 @@ func main() {
 	r.GET("/recipes", ListRecipesHandler)
 	r.PUT("/recipes:id", UpdateRecipeHandler)
 	r.DELETE("/recipes:id", DeleteRecipeHandler)
+	r.GET("/recipes/search", SearchRecipesHandler)
 	r.Run() // listen and serve on 8080
 }
