@@ -61,6 +61,20 @@ func UpdateRecipeHandler(c *gin.Context) {
 	c.JSON(http.StatusNotFound, gin.H{"error": "recipe not found"})
 }
 
+// DeleteRecipeHandler deletes a recipe
+func DeleteRecipeHandler(c *gin.Context) {
+	id := c.Param("id")
+	for i, r := range recipes {
+		if r.ID == id {
+			recipes = append(recipes[:i], recipes[i+1:]...)
+			c.JSON(http.StatusOK, gin.H{"message": "recipe deleted"})
+			return
+		}
+	}
+
+	c.JSON(http.StatusNotFound, gin.H{"error": "recipe not found"})
+}
+
 func init() {
 	recipes = make([]Recipe, 0)
 	//read file recipes.json
@@ -79,6 +93,7 @@ func main() {
 	r := gin.Default()
 	r.POST("/recipes", NewRecipeHandler)
 	r.GET("/recipes", ListRecipesHandler)
-	r.PUT('/recipes:id', UpdateRecipeHandler)
+	r.PUT("/recipes:id", UpdateRecipeHandler)
+	r.DELETE("/recipes:id", DeleteRecipeHandler)
 	r.Run() // listen and serve on 8080
 }
