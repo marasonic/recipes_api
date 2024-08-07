@@ -1,7 +1,10 @@
 package main
 
 import (
+	"encoding/json"
+	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -33,12 +36,28 @@ func NewRecipeHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, recipe)
 }
 
+// ListRecipesHandler lists all recipes
+func ListRecipesHandler(c *gin.Context) {
+	c.JSON(http.StatusOK, recipes)
+}
+
 func init() {
 	recipes = make([]Recipe, 0)
+	//read file recipes.json
+	b, err := os.ReadFile("recipes.json")
+	if err != nil {
+		log.Fatal(err)
+	}
+	//unmarshal json to recipes
+	err = json.Unmarshal(b, &recipes)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func main() {
 	r := gin.Default()
 	r.POST("/recipes", NewRecipeHandler)
+	r.GET("/recipes", ListRecipesHandler)
 	r.Run() // listen and serve on 8080
 }
