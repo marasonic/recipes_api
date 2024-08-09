@@ -19,10 +19,12 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redis"
 	"github.com/marasonic/recipes_api/handlers"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -70,6 +72,8 @@ func SearchRecipesHandler(c *gin.Context) {
 */
 func init() {
 	ctx := context.Background()
+
+	// MongoDB
 	client, err := mongo.Connect(ctx,
 		options.Client().ApplyURI(os.Getenv(("MONGO_URI"))))
 	if err != nil {
@@ -82,7 +86,18 @@ func init() {
 	}
 	log.Println("Connected to MongoDB!")
 	collection := client.Database(os.Getenv("MONGO_DATABASE")).Collection("recipes")
-	recipesHandler = handlers.NewRecipesHandler(ctx, collection)
+
+	// Redis
+	redisClient := redis.NewClient(&redis.Options{
+		Addr:     "localhost:6379",
+		Password: "",
+		DB:       0,
+	})
+	// Check the connection
+	status := redisClient.Ping()
+	fmt.Println(status)
+
+	recipesHandler = handlers.NewRecipesHandler(ctx, collection, redisClient)
 }
 
 func main() {
